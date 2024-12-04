@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sensor Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Freshness Estimator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
     body {
@@ -32,223 +33,274 @@
       height: 400px;
       margin: 20px auto;
     }
-    .ticker {
-      background: #007bff;
-      color: white;
-      padding: 10px 0;
-      overflow: hidden;
-      white-space: nowrap;
-      transition: background 0.3s, color 0.3s;
-    }
-    .ticker span {
-      display: inline-block;
-      animation: move 10s linear infinite;
-    }
-    @keyframes move {
-      0% {
-        transform: translateX(100%);
-      }
-      100% {
-        transform: translateX(-100%);
-      }
-    }
-    .theme-toggle {
-      margin: 20px auto;
+    .dropdown {
       text-align: center;
-    }
-    .download-button {
-      margin-top: 10px;
+      margin: 10px auto;
     }
     .btn-green {
-  background-color: #217346; /* Excel-like green */
-  color: white; /* Text color */
-  border: none;
-}
-
-.btn-green:hover {
-  background-color: #1e623b; /* Slightly darker green on hover */
-}
-
+      background-color: #217346;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+    }
+    .btn-green:hover {
+      background-color: #1e623b;
+    }
+    .dark-theme {
+      background: #121212;
+      color: #fff;
+    }
+    .dark-theme .container {
+      background: #333;
+    }
+    .dark-theme .dropdown .btn {
+      background-color: #444;
+      color: #fff;
+    }
+    .theme-toggle {
+      margin: 10px 0;
+    }
+    .theme-toggle .btn {
+      margin-bottom: 10px;
+    }
+    .download-button {
+      text-align: center;
+      margin: 20px 0;
+    }
+    @media (max-width: 768px) {
+      .chart-container {
+        height: 300px;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Moving text ticker -->
-  <div class="ticker">
-    <span id="tickerText">Loading latest sensor data...</span>
-  </div>
-
   <div class="container">
-    <h1>Sensor Dashboard</h1>
-    <div id="readings" class="text-center mb-4">
-      <p><strong>Temperature:</strong> <span id="temperature">Loading...</span></p>
-      <p><strong>Humidity:</strong> <span id="humidity">Loading...</span></p>
-      <p><strong>Soil Moisture:</strong> <span id="soilMoisture">Loading...</span></p>
+    <h1>Freshness Estimator</h1>
+
+    <!-- Ethylene Chart -->
+    <div class="chart-container">
+      <canvas id="ethyleneChart"></canvas>
     </div>
+    <div class="dropdown">
+      <label for="ethyleneCount">Number of Readings:</label>
+      <select id="ethyleneCount" class="form-select" style="width: 150px; display: inline-block;">
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="250">250</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+        <option value="2000">2000</option>
+        <option value="3000">3000</option>
+      </select>
+    </div>
+
+    <!-- Methane Chart -->
+    <div class="chart-container">
+      <canvas id="methaneChart"></canvas>
+    </div>
+    <div class="dropdown">
+      <label for="methaneCount">Number of Readings:</label>
+      <select id="methaneCount" class="form-select" style="width: 150px; display: inline-block;">
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="250">250</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+        <option value="2000">2000</option>
+        <option value="3000">3000</option>
+      </select>
+    </div>
+
+    <!-- Temperature Chart -->
     <div class="chart-container">
       <canvas id="temperatureChart"></canvas>
     </div>
+    <div class="dropdown">
+      <label for="temperatureCount">Number of Readings:</label>
+      <select id="temperatureCount" class="form-select" style="width: 150px; display: inline-block;">
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="250">250</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+        <option value="2000">2000</option>
+        <option value="3000">3000</option>
+      </select>
+    </div>
+
+    <!-- Humidity Chart -->
     <div class="chart-container">
       <canvas id="humidityChart"></canvas>
     </div>
-    <div class="chart-container">
-      <canvas id="soilMoistureChart"></canvas>
+    <div class="dropdown">
+      <label for="humidityCount">Number of Readings:</label>
+      <select id="humidityCount" class="form-select" style="width: 150px; display: inline-block;">
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="250">250</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+        <option value="2000">2000</option>
+        <option value="3000">3000</option>
+      </select>
     </div>
 
     <!-- Theme Toggle Button -->
-    <div class="theme-toggle">
-      <button id="toggleTheme" class="btn btn-primary">Switch to Black Theme</button>
+    <div class="theme-toggle text-center">
+      <button id="toggleTheme" class="btn btn-primary">🌙 Switch to Dark Mode</button>
     </div>
 
     <!-- Download CSV Button -->
-    <div class="download-button text-center">
+    <div class="download-button">
       <button id="downloadCsv" class="btn btn-green">Download Data as CSV</button>
     </div>
   </div>
 
   <script>
-    const toggleThemeButton = document.getElementById('toggleTheme');
-    const downloadCsvButton = document.getElementById('downloadCsv');
-    const charts = [];
-    let sensorData = []; // Store fetched data
-
-    toggleThemeButton.addEventListener('click', () => {
-      const isDarkTheme = document.body.classList.toggle('dark-theme');
-      document.body.style.background = isDarkTheme ? '#121212' : '#f5f5f5';
-      document.body.style.color = isDarkTheme ? '#ffffff' : '#000000';
-      document.querySelector('.container').style.background = isDarkTheme ? '#333333' : '#fff';
-      document.querySelector('.ticker').style.background = isDarkTheme ? '#444444' : '#007bff';
-      document.querySelector('.ticker').style.color = isDarkTheme ? '#ffffff' : '#ffffff';
-      toggleThemeButton.textContent = isDarkTheme ? 'Switch to White Theme' : 'Switch to Black Theme';
-      
-      updateChartColors(isDarkTheme ? '#ffffff' : '#000000');
-    });
-
-    const apiKey = "2AMDMTVA7IJPLMEF";
-    const channelId = "2388701";
-    const apiUrl = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=10`;
-
+    const apiKey = "DI1HZ5AJWCPNIC0A";
+    const channelId = "2772663";
+    let sensorData = [];
     const createChartConfig = (label, borderColor, backgroundColor) => ({
       type: 'line',
-      data: {
-        labels: [],
-        datasets: [{
-          label: label,
-          data: [],
-          borderColor: borderColor,
-          backgroundColor: backgroundColor,
-          fill: true,
-          tension: 0.4
-        }]
-      },
+      data: { labels: [], datasets: [{ label, data: [], borderColor, backgroundColor, fill: true, tension: 0.4 }] },
       options: {
         responsive: true,
         scales: {
           x: { 
+            type: 'category',
             title: { display: true, text: 'Time', color: '#000' },
-            ticks: { color: '#000' }
+            ticks: { color: '#000' },
+            grid: { color: 'rgba(0, 0, 0, 0.1)' }
           },
           y: { 
+            type: 'linear',
             title: { display: true, text: label, color: '#000' },
-            ticks: { color: '#000' }
+            ticks: { color: '#000' },
+            grid: { color: 'rgba(0, 0, 0, 0.1)' }
           }
         },
         plugins: {
-          legend: { labels: { color: '#000' } }
+          legend: { labels: { color: '#000' } },
+          zoom: {
+            pan: { enabled: true, mode: 'x' },
+            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+          }
         }
       }
     });
 
-    const temperatureChart = new Chart(
-      document.getElementById('temperatureChart').getContext('2d'),
-      createChartConfig('Temperature (°C)', 'rgba(255, 99, 132, 1)', 'rgba(255, 99, 132, 0.2)')
-    );
-    charts.push(temperatureChart);
+    const ethyleneChart = new Chart(document.getElementById('ethyleneChart').getContext('2d'), createChartConfig('Ethylene', 'rgba(255, 99, 132, 1)', 'rgba(255, 99, 132, 0.2)'));
+    const methaneChart = new Chart(document.getElementById('methaneChart').getContext('2d'), createChartConfig('Methane', 'rgba(54, 162, 235, 1)', 'rgba(54, 162, 235, 0.2)'));
+    const temperatureChart = new Chart(document.getElementById('temperatureChart').getContext('2d'), createChartConfig('Temperature (°C)', 'rgba(75, 192, 192, 1)', 'rgba(75, 192, 192, 0.2)'));
+    const humidityChart = new Chart(document.getElementById('humidityChart').getContext('2d'), createChartConfig('Humidity (%)', 'rgba(255, 206, 86, 1)', 'rgba(255, 206, 86, 0.2)'));
 
-    const humidityChart = new Chart(
-      document.getElementById('humidityChart').getContext('2d'),
-      createChartConfig('Humidity (%)', 'rgba(54, 162, 235, 1)', 'rgba(54, 162, 235, 0.2)')
-    );
-    charts.push(humidityChart);
+    const charts = [ethyleneChart, methaneChart, temperatureChart, humidityChart];
+    const selectElements = ['ethyleneCount', 'methaneCount', 'temperatureCount', 'humidityCount'].map(id => document.getElementById(id));
 
-    const soilMoistureChart = new Chart(
-      document.getElementById('soilMoistureChart').getContext('2d'),
-      createChartConfig('Soil Moisture (%)', 'rgba(75, 192, 192, 1)', 'rgba(75, 192, 192, 0.2)')
-    );
-    charts.push(soilMoistureChart);
-
-    async function fetchData() {
+    async function fetchData(count, chart, fieldIndex) {
+      const apiUrl = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=${count}`;
       try {
         const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        
         const data = await response.json();
         const feeds = data.feeds;
-        sensorData = feeds; // Store the fetched data
+        sensorData = feeds;
 
-        const latestFeed = feeds[feeds.length - 1] || {};
-        const temp = latestFeed.field1 || "N/A";
-        const hum = latestFeed.field2 || "N/A";
-        const soil = latestFeed.field3 || "N/A";
+        const labels = feeds.map(feed => {
+          const date = new Date(feed.created_at);
+          date.setHours(date.getHours() + 5, date.getMinutes() + 30); // Convert to IST
+          return date.toLocaleTimeString();
+        });
 
-        document.getElementById('temperature').textContent = `${temp} °C`;
-        document.getElementById('humidity').textContent = `${hum} %`;
-        document.getElementById('soilMoisture').textContent = `${soil} %`;
+        const dataPoints = feeds.map(feed => parseFloat(feed[`field${fieldIndex}`] || 0));
 
-        document.getElementById('tickerText').textContent = `Latest Data - Temperature: ${temp} °C | Humidity: ${hum} % | Soil Moisture: ${soil} %`;
-
-        const labels = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
-        temperatureChart.data.labels = labels;
-        temperatureChart.data.datasets[0].data = feeds.map(feed => parseFloat(feed.field1 || 0));
-        humidityChart.data.labels = labels;
-        humidityChart.data.datasets[0].data = feeds.map(feed => parseFloat(feed.field2 || 0));
-        soilMoistureChart.data.labels = labels;
-        soilMoistureChart.data.datasets[0].data = feeds.map(feed => parseFloat(feed.field3 || 0));
-
-        temperatureChart.update();
-        humidityChart.update();
-        soilMoistureChart.update();
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = dataPoints;
+        chart.update();
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
 
-    function updateChartColors(textColor) {
+    selectElements.forEach((select, index) => {
+      select.addEventListener('change', () => {
+        const value = parseInt(select.value, 10);
+        fetchData(value, charts[index], index + 1);
+      });
+    });
+
+    document.getElementById('toggleTheme').addEventListener('click', () => {
+      const isDarkTheme = document.body.classList.toggle('dark-theme');
+      document.getElementById('toggleTheme').textContent = isDarkTheme ? '🌞 Switch to Light Mode' : '🌙 Switch to Dark Mode';
       charts.forEach(chart => {
-        chart.options.scales.x.title.color = textColor;
-        chart.options.scales.x.ticks.color = textColor;
-        chart.options.scales.y.title.color = textColor;
-        chart.options.scales.y.ticks.color = textColor;
-        chart.options.plugins.legend.labels.color = textColor;
+        chart.options.scales.x.grid.color = isDarkTheme ? '#fff' : 'rgba(0, 0, 0, 0.1)';
+        chart.options.scales.y.grid.color = isDarkTheme ? '#fff' : 'rgba(0, 0, 0, 0.1)';
+        chart.options.scales.x.title.color = isDarkTheme ? '#fff' : '#000';
+        chart.options.scales.x.ticks.color = isDarkTheme ? '#fff' : '#000';
+        chart.options.scales.y.title.color = isDarkTheme ? '#fff' : '#000';
+        chart.options.scales.y.ticks.color = isDarkTheme ? '#fff' : '#000';
+        chart.options.plugins.legend.labels.color = isDarkTheme ? '#fff' : '#000';
         chart.update();
       });
-    }
+    });
 
-    function downloadCsv() {
-      const headers = ['Time', 'Temperature (°C)', 'Humidity (%)', 'Soil Moisture (%)'];
-      const rows = sensorData.map(feed => [
-        feed.created_at,
-        feed.field1 || "N/A",
-        feed.field2 || "N/A",
-        feed.field3 || "N/A"
-      ]);
+    document.getElementById('downloadCsv').addEventListener('click', async () => {
+  const maxCount = Math.max(
+    ...selectElements.map(select => parseInt(select.value, 10))
+  );
 
-      const csvContent = [headers, ...rows]
-        .map(row => row.join(","))
-        .join("\n");
+  const apiUrl = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=${maxCount}`;
+  
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    const feeds = data.feeds;
 
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
+    const headers = ['Time (IST)', 'Ethylene', 'Methane', 'Temperature', 'Humidity'];
+    const rows = feeds.map(feed => {
+      const utcDate = new Date(feed.created_at);
+      utcDate.setHours(utcDate.getHours() + 5, utcDate.getMinutes() + 30); // Convert to IST
+      const istDate = new Date(utcDate.getTime() + 5.5 * 60 * 60 * 1000)
+        .toISOString()
+        .replace('T', ' ')
+        .split('.')[0];
 
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'sensor_readings.csv';
-      link.click();
-    }
+      return [
+        istDate,
+        feed.field1 || 'N/A',
+        feed.field2 || 'N/A',
+        feed.field3 || 'N/A',
+        feed.field4 || 'N/A'
+      ];
+    });
 
-    downloadCsvButton.addEventListener('click', downloadCsv);
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'sensor_data.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error fetching data for CSV:", error);
+  }
+});
 
-    fetchData();
-    setInterval(fetchData, 15000);
+
+    selectElements.forEach((select, index) => fetchData(parseInt(select.value, 10), charts[index], index + 1));
+
+    setInterval(() => {
+      selectElements.forEach((select, index) => fetchData(parseInt(select.value, 10), charts[index], index + 1));
+    }, 5000);
   </script>
 </body>
 </html>
