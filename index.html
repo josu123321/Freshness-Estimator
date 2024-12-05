@@ -207,28 +207,29 @@
     const selectElements = ['ethyleneCount', 'methaneCount', 'temperatureCount', 'humidityCount'].map(id => document.getElementById(id));
 
     async function fetchData(count, chart, fieldIndex) {
-      const apiUrl = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=${count}`;
-      try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        const feeds = data.feeds;
-        sensorData = feeds;
+  const apiUrl = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=${count}`;
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    const feeds = data.feeds;
+    sensorData = feeds;
 
-        const labels = feeds.map(feed => {
-          const date = new Date(feed.created_at);
-          date.setHours(date.getHours() + 5, date.getMinutes() + 30); // Convert to IST
-          return date.toLocaleTimeString();
-        });
+    const labels = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString()); // Keep UTC time
 
-        const dataPoints = feeds.map(feed => parseFloat(feed[`field${fieldIndex}`] || 0));
+    
 
-        chart.data.labels = labels;
-        chart.data.datasets[0].data = dataPoints;
-        chart.update();
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    }
+
+    const dataPoints = feeds.map(feed => parseFloat(feed[`field${fieldIndex}`] || 0));
+
+    // Update the chart with IST timestamps
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = dataPoints;
+    chart.update();
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+}
+
 
     selectElements.forEach((select, index) => {
       select.addEventListener('change', () => {
