@@ -265,7 +265,7 @@
 });
 
 
-    document.getElementById('downloadCsv').addEventListener('click', async () => {
+document.getElementById('downloadCsv').addEventListener('click', async () => {
   const maxCount = Math.max(
     ...selectElements.map(select => parseInt(select.value, 10))
   );
@@ -280,11 +280,10 @@
     const headers = ['Time (IST)', 'Ethylene', 'Methane', 'Temperature', 'Humidity'];
     const rows = feeds.map(feed => {
       const utcDate = new Date(feed.created_at);
-      utcDate.setHours(utcDate.getHours() + 5, utcDate.getMinutes() + 30); // Convert to IST
-      const istDate = new Date(utcDate.getTime() + 5.5 * 60 * 60 * 1000)
-        .toISOString()
-        .replace('T', ' ')
-        .split('.')[0];
+      // Correct IST conversion (add 5.5 hours directly)
+      utcDate.setHours(utcDate.getHours() + 5, utcDate.getMinutes() + 30); 
+      
+      const istDate = utcDate.toISOString().replace('T', ' ').split('.')[0];
 
       return [
         istDate,
@@ -307,6 +306,7 @@
     console.error("Error fetching data for CSV:", error);
   }
 });
+
 
 
     selectElements.forEach((select, index) => fetchData(parseInt(select.value, 10), charts[index], index + 1));
