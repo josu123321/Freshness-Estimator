@@ -10,23 +10,23 @@
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background: #f5f5f5;
-      color: #000;
+      background: #121212; /* Default to dark theme */
+      color: #fff;
       transition: background 0.3s, color 0.3s;
     }
     .container {
       max-width: 900px;
       margin: auto;
       padding: 20px;
-      background: #fff;
+      background: #333; /* Dark container background */
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
       transition: background 0.3s;
     }
     h1 {
       text-align: center;
       margin-bottom: 20px;
-      color: #007bff;
+      color: #4caf50; /* Accent color in dark mode */
     }
     .chart-container {
       position: relative;
@@ -74,7 +74,7 @@
     }
   </style>
 </head>
-<body>
+<body class="dark-theme">
   <div class="container">
     <h1>Freshness Estimator</h1>
 
@@ -156,7 +156,7 @@
 
     <!-- Theme Toggle Button -->
     <div class="theme-toggle text-center">
-      <button id="toggleTheme" class="btn btn-primary">🌙 Switch to Dark Mode</button>
+      <button id="toggleTheme" class="btn btn-primary">🌞 Switch to Light Mode</button>
     </div>
 
     <!-- Download CSV Button -->
@@ -169,6 +169,7 @@
     const apiKey = "DI1HZ5AJWCPNIC0A";
     const channelId = "2772663";
     let sensorData = [];
+
     const createChartConfig = (label, borderColor, backgroundColor) => ({
       type: 'line',
       data: { labels: [], datasets: [{ label, data: [], borderColor, backgroundColor, fill: true, tension: 0.4 }] },
@@ -177,19 +178,19 @@
         scales: {
           x: { 
             type: 'category',
-            title: { display: true, text: 'Time', color: '#000' },
-            ticks: { color: '#000' },
-            grid: { color: 'rgba(0, 0, 0, 0.1)' }
+            title: { display: true, text: 'Time', color: '#fff' }, /* Default dark mode colors */
+            ticks: { color: '#fff' },
+            grid: { color: '#fff' }
           },
           y: { 
             type: 'linear',
-            title: { display: true, text: label, color: '#000' },
-            ticks: { color: '#000' },
-            grid: { color: 'rgba(0, 0, 0, 0.1)' }
+            title: { display: true, text: label, color: '#fff' },
+            ticks: { color: '#fff' },
+            grid: { color: '#fff' }
           }
         },
         plugins: {
-          legend: { labels: { color: '#000' } },
+          legend: { labels: { color: '#fff' } },
           zoom: {
             pan: { enabled: true, mode: 'x' },
             zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
@@ -198,6 +199,7 @@
       }
     });
 
+    // Initialize charts with dark mode colors
     const ethyleneChart = new Chart(document.getElementById('ethyleneChart').getContext('2d'), createChartConfig('Ethylene', 'rgba(255, 99, 132, 1)', 'rgba(255, 99, 132, 0.2)'));
     const methaneChart = new Chart(document.getElementById('methaneChart').getContext('2d'), createChartConfig('Methane', 'rgba(54, 162, 235, 1)', 'rgba(54, 162, 235, 0.2)'));
     const temperatureChart = new Chart(document.getElementById('temperatureChart').getContext('2d'), createChartConfig('Temperature (°C)', 'rgba(75, 192, 192, 1)', 'rgba(75, 192, 192, 0.2)'));
@@ -239,19 +241,29 @@
     });
 
     document.getElementById('toggleTheme').addEventListener('click', () => {
-      const isDarkTheme = document.body.classList.toggle('dark-theme');
-      document.getElementById('toggleTheme').textContent = isDarkTheme ? '🌞 Switch to Light Mode' : '🌙 Switch to Dark Mode';
-      charts.forEach(chart => {
-        chart.options.scales.x.grid.color = isDarkTheme ? '#fff' : 'rgba(0, 0, 0, 0.1)';
-        chart.options.scales.y.grid.color = isDarkTheme ? '#fff' : 'rgba(0, 0, 0, 0.1)';
-        chart.options.scales.x.title.color = isDarkTheme ? '#fff' : '#000';
-        chart.options.scales.x.ticks.color = isDarkTheme ? '#fff' : '#000';
-        chart.options.scales.y.title.color = isDarkTheme ? '#fff' : '#000';
-        chart.options.scales.y.ticks.color = isDarkTheme ? '#fff' : '#000';
-        chart.options.plugins.legend.labels.color = isDarkTheme ? '#fff' : '#000';
-        chart.update();
-      });
-    });
+  const isDarkTheme = document.body.classList.toggle('dark-theme');
+  document.body.style.background = isDarkTheme ? '#121212' : '#f5f5f5'; // Update background dynamically
+  document.getElementById('toggleTheme').textContent = isDarkTheme ? '🌞 Switch to Light Mode' : '🌙 Switch to Dark Mode';
+
+  // Update charts with appropriate colors
+  charts.forEach(chart => {
+    chart.options.scales.x.grid.color = isDarkTheme ? '#fff' : 'rgba(0, 0, 0, 0.1)';
+    chart.options.scales.y.grid.color = isDarkTheme ? '#fff' : 'rgba(0, 0, 0, 0.1)';
+    chart.options.scales.x.title.color = isDarkTheme ? '#fff' : '#000';
+    chart.options.scales.x.ticks.color = isDarkTheme ? '#fff' : '#000';
+    chart.options.scales.y.title.color = isDarkTheme ? '#fff' : '#000';
+    chart.options.scales.y.ticks.color = isDarkTheme ? '#fff' : '#000';
+    chart.options.plugins.legend.labels.color = isDarkTheme ? '#fff' : '#000';
+    chart.update();
+  });
+
+  // Update container background color dynamically
+  const containers = document.querySelectorAll('.container');
+  containers.forEach(container => {
+    container.style.background = isDarkTheme ? '#333' : '#fff';
+  });
+});
+
 
     document.getElementById('downloadCsv').addEventListener('click', async () => {
   const maxCount = Math.max(
